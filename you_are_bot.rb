@@ -1,33 +1,51 @@
 require 'twitter'
 
-CONSUMER_KEY        = ""
-CONSUMER_SECRET     = ""
-OAUTH_TOKEN         = ""
-OAUTH_TOKEN_SECRET  = ""
+class YouAreBot
 
-TROLL_LOG_DIR       = "#{File.dirname(__FILE__)}/trolled"
-TROLLS_PER_MIN      = 1          
+  attr_accessor :consumer_key, :consumer_secret, :oauth_token, :oauth_token_secret, :troll_log_dir, :troll_log_file, :trolls_per_min
 
-def troll_log_file
-  "#{TROLL_LOG_DIR}/trolled.log"
-end
+  def initialize
+    cfg = get_yaml
 
-def log_troll(u)
-  %x{echo '#{u}' >> #{troll_log_file}}
-end
+    @consumer_key = cfg['twitter']['consumer_key']
+    @consumer_secret = cfg['twitter']['consumer_secret']
+    @oauth_token = cfg['twitter']['oauth_token']   
+    @oauth_token_secret = cfg['twitter']['oauth_token_secret']
 
-def was_trolled(u)
-  %x{egrep -r '^#{u}$' #{TROLL_LOG_DIR}/* | wc -l}.strip().to_i > 0
+    @troll_log_dir = "#{File.dirname(__FILE__)}/trolled"    
+    @troll_log_file = "#{@troll_log_dir}/trolled.log"
+
+    @trolls_per_min = cfg['twitter']['trolls_per_min'].to_i  
+  end
+
+  def log_troll(u)
+    %x{echo '#{u}' >> #{@troll_log_file}}
+  end
+
+  def was_trolled(u)
+    %x{egrep -r '^#{u}$' #{@troll_log_dir}/* | wc -l}.strip().to_i > 0
+  end
+
+  def get_yaml
+    YAML.load(File.new("#{File.dirname(__FILE__)}/config.yml"))
+  end
+
 end
 
 troll_response = "don't you mean \"you are\"? You can use an apostrophe to write these two words as \"you're\", which is a homonym of \"your\"."
 
+yab = YouAreBot.new
+
+puts "consumer_key = #{yab.consumer_key}"
+puts "consumer_secret = #{yab.consumer_secret}"
+puts "oauth_token = #{yab.oauth_token}"
+puts "oauth_token_secret = #{yab.oauth_token_secret}"
 
 Twitter.configure do |config|
-  config.consumer_key = CONSUMER_KEY
-  config.consumer_secret = CONSUMER_SECRET
-  config.oauth_token = OAUTH_TOKEN
-  config.oauth_token_secret = OAUTH_TOKEN_SECRET
+  config.consumer_key = yab.consumer_key
+  config.consumer_secret = yab.consumer_secret
+  config.oauth_token = yab.oauth_token
+  config.oauth_token_secret = yab.oauth_token_secret
 end
 
 results = {}
@@ -38,10 +56,12 @@ res = Twitter.search('"your a"', :rpp => 50, :result_type => "recent").results
 res.reject!{|r|r.text =~ /^RT/}
 
 # don't troll the same user repeatedly
-res.reject!{|r|was_trolled(r.from_user)}
+res.reject!{|r|yab.was_trolled(r.from_user)}
   
 # when using 'your' in a sentence which should use you're
 res.select{|r|r.text =~ / your an? /}.each do |t|  
+
+ #puts "got: #{t.inspect}"
 
   results[t.from_user] = {
     :id => t.id, 
@@ -52,13 +72,15 @@ res.select{|r|r.text =~ / your an? /}.each do |t|
 end
 
 # release the troll
-(1..TROLLS_PER_MIN).each do 
+#yab.trolls_per_min.times do 
 
   trollee = results.shift
   user = trollee[0]
   tweet = trollee[1]
 
-  Twitter.update("@#{user} #{troll_response}", :in_reply_to_status_id => tweet[:id])
-  log_troll(user)
+  puts "now trolling: @#{user} for tweet: #{tweet[:text]}"
 
-end
+  Twitter.update("@#{user} #{troll_response}", :in_reply_to_status_id => tweet[:id])
+  yab.log_troll(user)
+
+#end
