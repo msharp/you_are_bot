@@ -3,4 +3,7 @@ twitter:
   consumer_secret: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
   oauth_token: AAAAAAAAA-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
   oauth_token_secret: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-trolls_per_min: 1          
+messages:
+  - Don't you mean "you are"? You can use an apostrophe to write these two words as "you're", which is a homonym of "your".
+  - You used a possesive adjective instead of a contraction. I think you mean "you're", not "your".
+  - Are you implying possession or attributing a characteristic? You should use "you're", not "your".
