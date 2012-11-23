@@ -1,4 +1,4 @@
-
+require 'yaml'
 class YouAreBot
 
   attr_accessor :consumer_key, :consumer_secret, :oauth_token, :oauth_token_secret, :troll_log_dir, :troll_log_file, :trolls_per_min

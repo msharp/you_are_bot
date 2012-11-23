@@ -21,7 +21,7 @@ res.reject!{|r|r.text =~ /(RT|MT)/}
 res.reject!{|r|yab.was_trolled(r.from_user)}
   
 # when using 'your' in a sentence which should use you're
-res.select{|r|r.text =~ / your an? /}.each do |t|  
+res.select{|r|r.text =~ / your an? (cunt|dick|ass|wanker|moron|idiot|fuck|shit|slut|bastard|republican|tosser|retard)/}.each do |t|  
 
   results[t.from_user] = {
     :id => t.id, 
